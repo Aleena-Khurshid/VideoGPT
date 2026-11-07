@@ -1,0 +1,40 @@
+﻿# Virtual environments
+vgpt_env/
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Database
+*.db
+*.sqlite3
+
+# Data folders (large files)
+data/videos/
+data/frames/
+data/clips/
+
+# Model weights
+*.pt
+*.onnx
+
+# Credentials
+credentials/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
