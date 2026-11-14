@@ -1,7 +1,7 @@
 ﻿# VideoGPT - Intelligent Video Surveillance Analysis
 
 BSc Computer Systems Engineering Final Year Project
-MUST Mirpur | Aleena Khurshid (FA22-CSE-008) | Huma Nazr (FA22-CSE-067)
+MUST Mirpur | Aleena Khurshid | Huma Nazr
 
 ## System Requirements
 - Windows 10/11 (64-bit)
