@@ -1,117 +1,145 @@
-﻿# VideoGPT - Intelligent Video Surveillance Analysis
+﻿# VideoGPT: Intelligent Video Surveillance Analysis
 
-BSc Computer Systems Engineering Final Year Project
-MUST Mirpur | Aleena Khurshid | Huma Nazr
+VideoGPT turns CCTV footage into searchable records. It detects vehicles, reads license plates, identifies vehicle colors, and lets you ask questions in plain English such as *"show red cars in gate1"*. It can also follow a vehicle across several cameras and send Gmail alerts for flagged events.
 
-## System Requirements
-- Windows 10/11 (64-bit)
-- Python 3.10.x (Download: https://www.python.org/downloads/release/python-31011/)
-- VS Code (Download: https://code.visualstudio.com/)
-- 16GB RAM recommended
-- 10GB free disk space (for models + data)
+Built as a Final Year Project in BS Computer Systems Engineering at MUST, Mirpur, by Aleena Khurshid and Huma Nazr.
 
-## Quick Start
+## Features
 
-### Step 1 - Clone / Extract Project
-Extract the project folder. Open VS Code. Open the VideoGPT folder.
+- **Vehicle detection** with YOLOv8 (`core/detector.py`)
+- **License plate recognition** with EasyOCR (`core/alpr.py`)
+- **Vehicle color detection** using k-means clustering in HSV color space (`core/color_extractor.py`)
+- **Natural language search** that uses a Groq LLM to turn a question into a database query (`nlp/query_parser.py`)
+- **Multi-camera investigation**: track a plate across gates, with a timeline, relation graph, and plate comparison (`investigation/`)
+- **Email alerts** for flagged events through Gmail SMTP (`alerts/notifier.py`)
+- **Streamlit dashboard** for camera setup, processing, search, investigation, analytics, and event logs (`ui/app.py`)
 
-### Step 2 - Open VS Code Terminal
-Press Ctrl+backtick to open terminal. Make sure it shows PowerShell.
+## How it works
 
-### Step 3 - Create Virtual Environment
-```powershell
-python -m venv vgpt_env
+```
+CCTV video ─► frame sampling ─► YOLOv8 vehicle detection ─► EasyOCR plate reading
+                                                    │
+                                   color detection ─┘
+                                                    ▼
+                                     SQLAlchemy database (cameras, detections)
+                                                    ▲
+ "show red cars in gate1" ─► Groq LLM ─► structured query ─┘
+                                                    │
+                                     Streamlit UI, timelines, alerts
 ```
 
-### Step 4 - Activate Virtual Environment
-```powershell
-vgpt_env\Scripts\activate
-```
-You should see (vgpt_env) in your prompt.
+## Tech stack
 
-### Step 5 - Install PyTorch (CPU version first)
-```powershell
-pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
-```
+| Tool | Purpose |
+|---|---|
+| YOLOv8 (Ultralytics) | Detects vehicles in each sampled frame |
+| OpenCV | Reads video and crops frames |
+| EasyOCR | Reads license plate text |
+| Groq API (Llama 3) | Converts natural language questions into filters |
+| SQLAlchemy + SQLite | Stores cameras and detection records |
+| Streamlit | Web interface |
+| NetworkX, Plotly | Relation graphs and charts |
+| Gmail SMTP | Sends alert emails |
 
-### Step 6 - Install All Other Requirements
-```powershell
-pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
-```
+## Requirements
 
-If any package fails install individually:
-```powershell
-pip install streamlit ultralytics opencv-python easyocr Pillow numpy pandas scikit-learn SQLAlchemy groq plotly networkx python-dotenv loguru Shapely
-```
+- Windows 10 or 11 (64-bit). The setup steps below use PowerShell.
+- Python 3.10
+- At least 16 GB RAM recommended
+- About 10 GB of free disk space for models and data
+- A free Groq API key from https://console.groq.com
+- A Gmail account with an App Password (only needed for alerts)
 
-### Step 7 - Configure Environment Variables
-Copy .env.example to .env:
-```powershell
-copy .env.example .env
-```
-Open .env in VS Code and fill in:
-- GROQ_API_KEY: Get free at https://console.groq.com (sign up, create API key)
-- GMAIL_SENDER: Your Gmail address
-- GMAIL_APP_PASSWORD: Gmail > Settings > Security > App Passwords > Generate
-- GMAIL_RECIPIENT: Where to send alerts
+## Setup
 
-### Step 8 - Initialise Database
-```powershell
-python setup_db.py
-```
-Expected output: Database initialised. Cameras gate1/gate2/gate3 registered.
+1. **Create and activate a virtual environment**
 
-### Step 9 - Add Your Videos
-Place CCTV video files (MP4/AVI) in:
-- data\videos\gate1\footage.mp4
-- data\videos\gate2\footage.mp4
-- data\videos\gate3\footage.mp4
+   ```powershell
+   python -m venv vgpt_env
+   vgpt_env\Scripts\activate
+   ```
 
-### Step 10 - Run VideoGPT
+2. **Install PyTorch (CPU build) first**
+
+   ```powershell
+   pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
+   ```
+
+3. **Install the other requirements**
+
+   ```powershell
+   pip install -r requirements.txt --index-url https://download.pytorch.org/whl/cpu
+   ```
+
+4. **Configure secrets.** Copy the template and fill in your own values. Never commit `.env`.
+
+   ```powershell
+   copy .env.example .env
+   ```
+
+   | Variable | What to put |
+   |---|---|
+   | `GROQ_API_KEY` | Your Groq API key |
+   | `GMAIL_SENDER` | The Gmail address that sends alerts |
+   | `GMAIL_APP_PASSWORD` | A 16-character Gmail App Password (not your normal password) |
+   | `GMAIL_RECIPIENT` | Where alerts are sent |
+
+5. **Create the database.** This also registers the sample cameras `gate1`, `gate2`, and `gate3`.
+
+   ```powershell
+   python setup_db.py
+   ```
+
+6. **Add footage.** Place MP4 or AVI files at `data\videos\gate1\footage.mp4` (and the same for `gate2` and `gate3`). The `data/` folder is git-ignored.
+
+## Running the app
+
 ```powershell
 streamlit run ui/app.py
 ```
-Browser opens at http://localhost:8501
 
-## How to Use
+Open http://localhost:8501. If the port is busy, use `streamlit run ui/app.py --server.port 8502`.
 
-1. Camera Manager -> Register your gate cameras with video file paths
-2. Process Videos -> Select cameras -> Click Start Processing (runs YOLO + ALPR)
-3. Search -> Type natural language query: "show red cars in gate1"
-4. Investigation -> Type "investigate ABC-1234 in gate1 gate2 gate3"
-   - See timeline chart
-   - See relation graph
-   - See plate comparison
-   - Send Gmail alert
+On the first detection run, YOLOv8 downloads `yolov8n.pt` (about 6 MB). EasyOCR also downloads its models (about 200 MB) on first use, so the first run is slow.
 
-## Troubleshooting
+## Usage
 
-Port already in use:
-```powershell
-streamlit run ui/app.py --server.port 8502
-```
+1. **Camera Manager:** register each gate camera and its video file path.
+2. **Process Videos:** select cameras and start processing. This runs vehicle detection and plate reading.
+3. **Natural Language Search:** ask questions such as *"show red cars in gate1"*.
+4. **Multi-Camera Investigation:** enter a plate, for example *"investigate ABC-1234 in gate1 gate2 gate3"*, to see its timeline, relation graph, and plate comparison, and to send a Gmail alert.
 
-EasyOCR slow first run (downloading models ~200MB) - just wait.
+## Project structure
 
-YOLO auto-downloads yolov8n.pt (~6MB) on first detection run.
-
-If torch not found:
-```powershell
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-```
-
-## Project Structure
 ```
 VideoGPT/
-├── core/           Vision pipeline (YOLO, ALPR, color)
-├── database/       SQLAlchemy models and CRUD
-├── nlp/            Groq LLM query parser
-├── investigation/  Multi-camera investigation engine
-├── alerts/         Gmail notification system
-├── ui/             Streamlit web interface
-├── data/           Videos, frames, clips (git-ignored)
-├── setup_db.py     Database initialiser
+├── core/           Vision pipeline: detector, plate reader, color, frame processor
+├── database/       SQLAlchemy models and database operations
+├── nlp/            Groq-based query parser
+├── investigation/  Multi-camera timeline and plate tracking
+├── alerts/         Gmail alert sender
+├── ui/             Streamlit app
+├── setup_db.py     Creates the database and sample cameras
 ├── requirements.txt
-├── .env.example
-└── README.md
+└── .env.example    Template for environment variables
 ```
+
+## Limitations
+
+- **No quantitative evaluation yet.** I have not measured detection, OCR, or search accuracy. The results depend on footage quality, lighting, and camera angle.
+- **Tests are not written yet.** Adding tests for the query parser, plate normalization, and database operations is the next step.
+- **Windows-focused setup.** The commands are written for PowerShell. The code itself is not tied to Windows.
+- **Depends on a hosted LLM.** Natural language search needs a Groq API key and internet access. The model name is set in `nlp/query_parser.py` and may need updating when Groq changes its models.
+- **Heavy first run.** YOLO and EasyOCR model downloads make the first start slow.
+
+## Planned improvements
+
+- Measure detection and plate-reading accuracy on labeled clips, and report the results here.
+- Add unit tests and a CI workflow.
+- Add screenshots or a short demo video of the dashboard.
+
+## Author
+
+**Aleena Khurshid**: BS Computer Systems Engineering, MUST Mirpur. [GitHub](https://github.com/Aleena-Khurshid) · [LinkedIn](https://linkedin.com/in/aleena-khurshid-ai)
+
+Co-developer: **Huma Nazr**.
