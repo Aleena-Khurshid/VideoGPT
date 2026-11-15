@@ -77,7 +77,7 @@ with st.sidebar:
     st.divider()
     st.caption("BSc CSE Final Year Project")
     st.caption("MUST Mirpur | 2026")
-    st.caption("Aleena Khurshid | Huma Nazr")
+    st.caption("Aleena Khurshid")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
