@@ -2,7 +2,7 @@
 
 VideoGPT turns CCTV footage into searchable records. It detects vehicles, reads license plates, identifies vehicle colors, and lets you ask questions in plain English such as *"show red cars in gate1"*. It can also follow a vehicle across several cameras and send Gmail alerts for flagged events.
 
-Built as a Final Year Project in BS Computer Systems Engineering at MUST, Mirpur, by Aleena Khurshid and Huma Nazr.
+Built as a Final Year Project in BS Computer Systems Engineering at MUST, Mirpur, by Aleena Khurshid.
 
 ## Features
 
@@ -142,4 +142,3 @@ VideoGPT/
 
 **Aleena Khurshid**: BS Computer Systems Engineering, MUST Mirpur. [GitHub](https://github.com/Aleena-Khurshid) · [LinkedIn](https://linkedin.com/in/aleena-khurshid-ai)
 
-Co-developer: **Huma Nazr**.
